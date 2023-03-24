@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/savsgio/go-logger/v4"
+	"github.com/savsgio/gotils/strings"
 	"go.elastic.co/apm/v2"
 	"go.elastic.co/apm/v2/stacktrace"
 )
@@ -86,7 +87,7 @@ func (h *Hook) getError(args []interface{}) error {
 }
 
 // Fire reports the log entry as an error to the APM Server.
-func (h *Hook) Fire(entry logger.Entry) error {
+func (h *Hook) Fire(entry logger.Entry) error { // nolint:funlen
 	tracer := h.tracer()
 	if !tracer.Recording() {
 		return nil
@@ -100,6 +101,14 @@ func (h *Hook) Fire(entry logger.Entry) error {
 	})
 	errlog.Handled = true
 	errlog.Timestamp = entry.Time
+
+	for i := range entry.Config.Fields {
+		field := entry.Config.Fields[i]
+
+		if !strings.Include(fieldKeys, field.Key) {
+			errlog.Context.SetCustom("log_fields_"+field.Key, field.Value)
+		}
+	}
 
 	stacktrace := 1
 	if err == nil {

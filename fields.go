@@ -18,6 +18,8 @@ const (
 	FieldKeySpanID = "span.id"
 )
 
+var fieldKeys = []string{FieldKeyTraceID, FieldKeyTransactionID, FieldKeySpanID}
+
 // TraceContext returns a []logger.Field containing the trace
 // context of the transaction and span contained in ctx, if any.
 func TraceContext(ctx context.Context) []logger.Field {

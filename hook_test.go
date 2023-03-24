@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"os/exec"
+	"strings"
 	"testing"
 	"time"
 
@@ -21,8 +22,8 @@ import (
 	"go.elastic.co/apm/v2/transport/transporttest"
 )
 
-func newLogger(w io.Writer) *logger.Logger {
-	l := logger.New(logger.DEBUG, w)
+func newLogger(w io.Writer, fields ...logger.Field) *logger.Logger {
+	l := logger.New(logger.DEBUG, w, fields...)
 	l.SetEncoder(logger.NewEncoderJSON(logger.EncoderJSONConfig{}))
 
 	return l
@@ -38,14 +39,18 @@ func TestHook(t *testing.T) {
 
 	var buf bytes.Buffer
 
-	log := newLogger(&buf)
+	fields := []logger.Field{
+		{Key: "foo", Value: "bar"},
+	}
+
+	log := newLogger(&buf, fields...)
 	if err := log.AddHook(&Hook{Tracer: tracer}); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
 	log.Errorf("¡hola, %s!", "mundo")
 
-	assert.Regexp(t, `{"datetime":"(.*)","level":"ERROR","message":"¡hola, mundo!"}`+"\n", buf.String())
+	assert.Regexp(t, `{"datetime":"(.*)","level":"ERROR","foo":"bar","message":"¡hola, mundo!"}`+"\n", buf.String())
 
 	tracer.Flush(nil)
 
@@ -63,6 +68,19 @@ func TestHook(t *testing.T) {
 	assert.Zero(t, err0.ParentID)
 	assert.Zero(t, err0.TraceID)
 	assert.Zero(t, err0.TransactionID)
+
+	assert.NotNil(t, err0.Context)
+
+	ctxCustomFields := []logger.Field{}
+
+	for _, kv := range err0.Context.Custom {
+		assert.Regexp(t, "^log_fields_(.*)$", kv.Key)
+
+		fieldKey := strings.Split(kv.Key, "_")[2]
+		ctxCustomFields = append(ctxCustomFields, logger.Field{Key: fieldKey, Value: kv.Value})
+	}
+
+	assert.Equal(t, ctxCustomFields, fields)
 }
 
 func TestHookTransactionTraceContext(t *testing.T) {

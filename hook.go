@@ -99,7 +99,7 @@ func (h *Hook) Fire(entry logger.Entry) error { // nolint:funlen
 		Level:   entry.Level.String(),
 		Error:   err,
 	})
-	errlog.Handled = true
+	errlog.Handled = err != nil
 	errlog.Timestamp = entry.Time
 
 	for i := range entry.Config.Fields {

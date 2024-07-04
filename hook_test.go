@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -87,7 +86,7 @@ func TestHookTransactionTraceContext(t *testing.T) {
 	tracer, transport := transporttest.NewRecorderTracer()
 	defer tracer.Close()
 
-	log := newLogger(ioutil.Discard)
+	log := newLogger(io.Discard)
 	if err := log.AddHook(&Hook{Tracer: tracer}); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -117,7 +116,7 @@ func TestHookWithError(t *testing.T) {
 	tracer, transport := transporttest.NewRecorderTracer()
 	defer tracer.Close()
 
-	log := newLogger(ioutil.Discard)
+	log := newLogger(io.Discard)
 	if err := log.AddHook(&Hook{Tracer: tracer}); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -193,7 +192,7 @@ func TestHookTracerClosed(t *testing.T) {
 	tracer, _ := transporttest.NewRecorderTracer()
 	tracer.Close() // close it straight away, hook should return immediately
 
-	log := newLogger(ioutil.Discard)
+	log := newLogger(io.Discard)
 	if err := log.AddHook(&Hook{Tracer: tracer}); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

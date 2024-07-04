@@ -66,7 +66,7 @@ func (h *Hook) Levels() []logger.Level {
 	return DefaultLogLevels
 }
 
-func (h *Hook) getFieldValue(fields []logger.Field, key string) interface{} {
+func (h *Hook) getFieldValue(fields []logger.Field, key string) any {
 	for i := range fields {
 		if field := fields[i]; field.Key == key {
 			return field.Value
@@ -76,7 +76,7 @@ func (h *Hook) getFieldValue(fields []logger.Field, key string) interface{} {
 	return nil
 }
 
-func (h *Hook) getError(args []interface{}) error {
+func (h *Hook) getError(args []any) error {
 	for i := range args {
 		if err, ok := args[i].(error); ok {
 			return err

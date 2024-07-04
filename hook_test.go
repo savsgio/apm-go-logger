@@ -175,7 +175,7 @@ func TestHookFatal(t *testing.T) {
 	)
 
 	output, err := cmd.CombinedOutput()
-	assert.Error(t, err)
+	require.Error(t, err)
 
 	defer func() {
 		if t.Failed() {
